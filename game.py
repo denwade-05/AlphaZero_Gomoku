@@ -5,6 +5,13 @@
 
 from __future__ import print_function
 import numpy as np
+from graphics import *
+
+# UI 参数
+GRID_WIDTH = 40
+
+COLUMN = 7
+ROW = 7
 
 
 class Board(object):
@@ -30,6 +37,23 @@ class Board(object):
         self.availables = list(range(self.width * self.height))
         self.states = {}
         self.last_move = -1
+
+    def gobangwin(self):
+        win = GraphWin("this is a gobang game", GRID_WIDTH * COLUMN, GRID_WIDTH * ROW)
+        win.setBackground("yellow")
+        i1 = 0
+
+        while i1 <= GRID_WIDTH * COLUMN:
+            l = Line(Point(i1, 0), Point(i1, GRID_WIDTH * COLUMN))
+            l.draw(win)
+            i1 = i1 + GRID_WIDTH
+        i2 = 0
+
+        while i2 <= GRID_WIDTH * ROW:
+            l = Line(Point(0, i2), Point(GRID_WIDTH * ROW, i2))
+            l.draw(win)
+            i2 = i2 + GRID_WIDTH
+        return win
 
     def move_to_location(self, move):
         """
@@ -134,12 +158,12 @@ class Game(object):
 
     def __init__(self, board, **kwargs):
         self.board = board
+        self.ui = self.board.gobangwin()
 
     def graphic(self, board, player1, player2):
         """Draw the board and show game info"""
         width = board.width
         height = board.height
-
         print("Player", player1, "with X".rjust(3))
         print("Player", player2, "with O".rjust(3))
         print()
@@ -176,6 +200,25 @@ class Game(object):
             player_in_turn = players[current_player]
             move = player_in_turn.get_action(self.board)
             self.board.do_move(move)
+
+            # UI Circle(Point(GRID_WIDTH * pos[0], GRID_WIDTH * pos[1]), 16)
+            """
+            3*3 board's  like:
+            对3*3矩阵进行映射
+              0 1 2
+            0 0 3 6          6 7 8
+            1 1 4 7    <-    3 4 5
+            2 2 5 8          0 1 2
+            右边是命令行的棋盘
+            左边是UI棋盘
+            """
+            piece = Circle(Point(GRID_WIDTH *((move % 8)) , GRID_WIDTH * (7 - (move // 8))), 16)
+            if current_player == 1:
+                piece.setFill('white')
+            else:
+                piece.setFill('black')
+            piece.draw(self.ui)
+
             if is_shown:
                 self.graphic(self.board, player1.player, player2.player)
             end, winner = self.board.game_end()
@@ -183,8 +226,18 @@ class Game(object):
                 if is_shown:
                     if winner != -1:
                         print("Game end. Winner is", players[winner])
+                        # ui
+                        message = Text(Point(100, 100), (str)(players[winner])+"win.")
+                        message.draw(self.ui)
+
                     else:
                         print("Game end. Tie")
+                    # ui
+                    message = Text(Point(100, 120), "Click anywhere to quit.")
+                    message.draw(self.ui)
+                    self.ui.getMouse()
+                    self.ui.close()
+
                 return winner
 
     def start_self_play(self, player, is_shown=0, temp=1e-3):
