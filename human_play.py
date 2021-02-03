@@ -8,7 +8,7 @@ Input your move in the format: 2,3
 
 from __future__ import print_function
 import pickle
-from game import Board, Game
+from game import Board, Game, GRID_WIDTH
 from mcts_pure import MCTSPlayer as MCTS_Pure
 from mcts_alphaZero import MCTSPlayer
 from policy_value_net_numpy import PolicyValueNetNumpy
@@ -17,6 +17,7 @@ from policy_value_net_numpy import PolicyValueNetNumpy
 # from policy_value_net_tensorflow import PolicyValueNet # Tensorflow
 # from policy_value_net_keras import PolicyValueNet  # Keras
 
+from graphics import *
 
 class Human(object):
     """
@@ -29,9 +30,21 @@ class Human(object):
     def set_player_ind(self, p):
         self.player = p
 
+    def set_ui(self,ui):
+        self.ui = ui
+
     def get_action(self, board):
         try:
-            location = input("Your move: ")
+            #ui
+            p2 = self.ui.getMouse()
+            a2 = round((p2.getX()) / GRID_WIDTH)
+            b2 = round((p2.getY()) / GRID_WIDTH)
+            #print('pos', 7 - b2, a2)
+            '''
+            具体看game.py 206行 转换
+            '''
+            location = [7-b2 , a2]
+            #location = input("Your move: ")
             if isinstance(location, str):  # for python3
                 location = [int(n, 10) for n in location.split(",")]
             move = board.location_to_move(location)
@@ -76,7 +89,8 @@ def run():
 
         # human player, input your move in the format: 2,3
         human = Human()
-
+        #set ui
+        human.set_ui(game.ui)
         # set start_player=0 for human first
         game.start_play(human, mcts_player, start_player=1, is_shown=1)
     except KeyboardInterrupt:
